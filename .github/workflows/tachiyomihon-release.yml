@@ -1,0 +1,89 @@
+name: TachiyoMihon release
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [closed]
+    branches: [tachiyomihon]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tachiyomihon-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    # Manual runs, or a merged upstream-sync PR
+    if: github.event_name == 'workflow_dispatch' || (github.event.pull_request.merged && startsWith(github.event.pull_request.head.ref, 'sync/'))
+    runs-on: 'ubuntu-26.04'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: tachiyomihon
+          fetch-depth: 0
+
+      - name: Guard custom features
+        run: bash .github/scripts/tachiyomihon-guard.sh
+
+      - name: Set up JDK
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          java-version-file: .github/.java-version
+          distribution: temurin
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+
+      - name: Compute version
+        id: version
+        run: |
+          base=$(sed -nE 's/^\s*versionName = "([^"]+)".*/\1/p' app/build.gradle.kts | head -1)
+          last=$(git tag -l "v$base.*" | sed "s/^v$base\.//" | grep -E '^[0-9]+$' | sort -n | tail -1)
+          rev=$(( ${last:-0} + 1 ))
+          echo "rev=$rev" >> "$GITHUB_OUTPUT"
+          echo "tag=v$base.$rev" >> "$GITHUB_OUTPUT"
+          echo "prev=$(git describe --tags --abbrev=0 --match 'v*.*.*.*' 2>/dev/null)" >> "$GITHUB_OUTPUT"
+
+      - name: Decode signing keystore
+        run: echo "$SIGNING_KEY" | base64 -d > "${{ runner.temp }}/tachiyomihon.jks"
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+
+      - name: Build
+        run: ./gradlew assembleRelease -Penable-updater -PtachiyomihonRevision=${{ steps.version.outputs.rev }}
+        env:
+          MIHON_GITHUB_RELEASE: true
+          storeFile: ${{ runner.temp }}/tachiyomihon.jks
+          storePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyAlias: ${{ secrets.ALIAS }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Release notes
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PREV: ${{ steps.version.outputs.prev }}
+        run: |
+          if [ -n "$PR_BODY" ]; then
+            printf '%s\n' "$PR_BODY" > notes.md
+          else
+            {
+              echo "## Changes"
+              # First-parent skips commits that arrived through upstream merges
+              git log --first-parent --no-merges --format='- %s' "${PREV:-$(git merge-base HEAD origin/main)}..HEAD"
+            } > notes.md
+          fi
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          out=app/build/outputs/apk/release
+          mv "$out/app-arm64-v8a-release.apk" "tachiyomihon-arm64-v8a-$TAG.apk"
+          mv "$out/app-universal-release.apk" "tachiyomihon-$TAG.apk"
+          gh release create "$TAG" "tachiyomihon-arm64-v8a-$TAG.apk" "tachiyomihon-$TAG.apk" \
+            --target "$(git rev-parse HEAD)" --title "TachiyoMihon $TAG" --notes-file notes.md

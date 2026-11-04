@@ -1,0 +1,146 @@
+name: TachiyoMihon upstream sync
+
+on:
+  schedule:
+    - cron: '30 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: tachiyomihon-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: 'ubuntu-26.04'
+    env:
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: tachiyomihon
+          fetch-depth: 0
+
+      - name: Check for a new upstream release
+        id: check
+        run: |
+          tag=$(gh release view -R mihonapp/mihon --json tagName -q .tagName)
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          git fetch --no-tags https://github.com/mihonapp/mihon.git "refs/tags/$tag:refs/upstream/$tag"
+          if git merge-base --is-ancestor "refs/upstream/$tag" HEAD; then
+            echo "Already on $tag"; echo "skip=true" >> "$GITHUB_OUTPUT"
+          elif git ls-remote --exit-code --heads origin "sync/$tag" >/dev/null; then
+            echo "sync/$tag already exists (open PR or issue)"; echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Merge upstream release
+        if: steps.check.outputs.skip != 'true'
+        id: merge
+        env:
+          TAG: ${{ steps.check.outputs.tag }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          echo "before=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          git switch -c "sync/$TAG"
+          if git merge --no-ff --no-edit -m "Merge upstream $TAG" "refs/upstream/$TAG"; then
+            exit 0
+          fi
+          conflicts=$(git diff --name-only --diff-filter=U)
+          git merge --abort
+          # Push the untouched branch so later runs don't open duplicate issues
+          git push origin "sync/$TAG"
+          gh issue create --title "Upstream $TAG: merge conflicts" --body "$(cat <<EOF
+          Merging upstream \`$TAG\` into \`tachiyomihon\` conflicts in:
+
+          \`\`\`
+          $conflicts
+          \`\`\`
+
+          Resolve locally, then delete the \`sync/$TAG\` branch:
+
+          \`\`\`
+          git fetch upstream tag $TAG
+          git switch -c sync/$TAG-manual tachiyomihon
+          git merge $TAG
+          \`\`\`
+
+          Push it and open a PR whose branch name starts with \`sync/\` so merging it publishes a release.
+          EOF
+          )"
+          exit 1
+
+      - name: Guard custom features
+        if: steps.check.outputs.skip != 'true'
+        run: bash .github/scripts/tachiyomihon-guard.sh
+
+      - name: Set up JDK
+        if: steps.check.outputs.skip != 'true'
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          java-version-file: .github/.java-version
+          distribution: temurin
+
+      - name: Set up Gradle
+        if: steps.check.outputs.skip != 'true'
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+
+      - name: Test and build
+        if: steps.check.outputs.skip != 'true'
+        run: ./gradlew testDebugUnitTest assembleRelease -Penable-updater
+
+      - name: Open pull request
+        if: steps.check.outputs.skip != 'true'
+        env:
+          TAG: ${{ steps.check.outputs.tag }}
+          BEFORE: ${{ steps.merge.outputs.before }}
+        run: |
+          upstream="refs/upstream/$TAG"
+          prev_upstream=$(git merge-base "$BEFORE" "$upstream")
+          # Files TachiyoMihon changes relative to upstream
+          ours=$(git diff --name-only "$upstream" HEAD -- . ':!.github' | sort -u)
+          touched=""
+          [ -n "$ours" ] && touched=$(git diff --name-only "$prev_upstream" "$upstream" -- $ours)
+          {
+            echo "## Upstream $TAG"
+            echo
+            gh release view "$TAG" -R mihonapp/mihon --json body -q .body | sed 's/<!-->//g'
+            echo
+            echo "## ⚠️ Upstream changes to files TachiyoMihon customizes"
+            echo
+            if [ -n "$touched" ]; then
+              echo '```'
+              git diff --stat "$prev_upstream" "$upstream" -- $touched
+              echo '```'
+            else
+              echo "None."
+            fi
+            echo
+            echo "<details><summary>Upstream commits</summary>"
+            echo
+            git log --no-merges --format='- %s' "$prev_upstream..$upstream"
+            echo
+            echo "</details>"
+            echo
+            echo "Guards, unit tests and release build passed. Merging this PR publishes a new TachiyoMihon release."
+          } | head -c 60000 > body.md
+          git push origin "sync/$TAG"
+          gh pr create --base tachiyomihon --head "sync/$TAG" --title "Sync upstream $TAG" --body-file body.md
+
+      - name: Report guard or build failure
+        if: failure() && steps.merge.outcome == 'success'
+        env:
+          TAG: ${{ steps.check.outputs.tag }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          # Pushing the merged branch also stops later runs from retrying the same release
+          git push origin "sync/$TAG"
+          gh issue create --title "Upstream $TAG: guards or build failed" --body "The merge was clean but guards, tests or the build failed: $RUN_URL
+
+          The merged result is on branch \`sync/$TAG\`. Fix it there, then open a PR into \`tachiyomihon\`."

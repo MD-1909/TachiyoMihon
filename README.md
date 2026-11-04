@@ -1,86 +1,62 @@
 <div align="center">
 
-<a href="https://mihon.app">
-    <img src="./.github/assets/logo.png" alt="Mihon logo" title="Mihon logo" width="80"/>
-</a>
+<img src="./.github/assets/logo.png" alt="TachiyoMihon logo" title="TachiyoMihon logo" width="80"/>
 
-# Mihon [App](#)
+# TachiyoMihon
 
-### Full-featured reader
-Discover and read manga, webtoons, comics, and more – easier than ever on your Android device.
+### Mihon, with the Tachiyomi v14 reading habits back
+A personal fork of [Mihon](https://github.com/mihonapp/mihon) that follows its stable releases and reverts a handful of changes that broke long-standing Tachiyomi workflows.
 
-[![Discord server](https://img.shields.io/discord/1195734228319617024.svg?label=&labelColor=6A7EC2&color=7389D8&logo=discord&logoColor=FFFFFF)](https://discord.gg/mihon)
-[![GitHub downloads](https://img.shields.io/github/downloads/mihonapp/mihon/total?label=downloads&labelColor=27303D&color=0D1117&logo=github&logoColor=FFFFFF&style=flat)](https://mihon.app/download)
-
-[![CI](https://img.shields.io/github/actions/workflow/status/mihonapp/mihon/build.yml?labelColor=27303D)](https://github.com/mihonapp/mihon/actions/workflows/build_push.yml)
+[![Release](https://img.shields.io/github/v/release/MD-1909/TachiyoMihon?label=Release&labelColor=06599d&color=043b69)](https://github.com/MD-1909/TachiyoMihon/releases/latest)
+[![Upstream sync](https://img.shields.io/github/actions/workflow/status/MD-1909/TachiyoMihon/tachiyomihon-sync.yml?label=upstream%20sync&labelColor=27303D)](https://github.com/MD-1909/TachiyoMihon/actions/workflows/tachiyomihon-sync.yml)
+[![Based on Mihon](https://img.shields.io/github/v/release/mihonapp/mihon?label=based%20on%20Mihon&labelColor=27303D&color=0D1117)](https://github.com/mihonapp/mihon/releases/latest)
 [![License: Apache-2.0](https://img.shields.io/github/license/mihonapp/mihon?labelColor=27303D&color=0877d2)](/LICENSE)
-[![Translation status](https://img.shields.io/weblate/progress/mihon?labelColor=27303D&color=946300)](https://hosted.weblate.org/engage/mihon/)
 
 ## Download
 
-[![Mihon Stable](https://img.shields.io/github/release/mihonapp/mihon.svg?maxAge=3600&label=Stable&labelColor=06599d&color=043b69)](https://mihon.app/download)
-[![Mihon Beta](https://img.shields.io/github/v/release/mihonapp/mihon-preview.svg?maxAge=3600&label=Beta&labelColor=2c2c47&color=1c1c39)](https://mihon.app/download)
+Grab the latest APK from [Releases](https://github.com/MD-1909/TachiyoMihon/releases/latest). Most modern phones want the `arm64-v8a` build; the plain `tachiyomihon-v*.apk` is universal.
+
+It installs as a separate app (`app.mihon.tachiyomihon`), so it can live next to Mihon. After the first install, updates are offered and installed from inside the app.
 
 *Requires Android 8.0 or higher.*
 
-## Features
+## What's different from Mihon
 
 <div align="left">
 
-* Local reading of content.
-* A configurable reader with multiple viewers, reading directions and other settings.
-* Tracker support: [MangaBaka](https://mangabaka.org), [MyAnimeList](https://myanimelist.net/), [AniList](https://anilist.co/), [Kitsu](https://kitsu.app/), [MangaUpdates](https://mangaupdates.com), [Shikimori](https://shikimori.one), [Bangumi](https://bgm.tv/), and [Hikka](https://hikka.io/) support.
-* Categories to organize your library.
-* Light and dark themes.
-* Schedule updating your library for new chapters.
-* Create backups locally to read offline or to your desired cloud service.
-* Plus much more...
+| Area | Mihon | TachiyoMihon |
+| --- | --- | --- |
+| **Downloaded only – reader** | The reader only knows about downloaded chapters. Moving past the first/last downloaded chapter shows *"There's no previous chapter"*. | Library and chapter list stay filtered to downloads, but the reader moves into the neighbouring non-downloaded chapter and streams it, like Tachiyomi v14. |
+| **Downloaded only – download menu** | *Next 1/5/10/25 unread*, *Unread* and *Bookmarked* only look at downloaded chapters, so they do nothing. | They pick from the chapters hidden by downloaded-only mode, so you can still queue the next chapters. |
+| **Unread indicator** | A dot next to every unread chapter (chapter list and Updates). | Removed. Unread chapters are still shown in full brightness, read ones dimmed. |
+| **Missing chapters** | Warning in the chapter header, "missing chapters" rows between chapters, a warning in the reader and a forced transition page at every numbering gap, even when the gap only exists because of a filter. | Reader warning and forced transition pages removed. Header warning and gap rows are hidden by default (toggle in *Settings → Library*). |
+| **Sliders** | Material 3 Expressive: tall track, bar-shaped thumb, track split around the thumb. | The older look everywhere (reader page slider and settings): thin track with dot ticks and a round thumb. |
+| **Updates** | From `mihonapp/mihon`. | From this repo's releases. Versions are `<Mihon version>.<revision>`, e.g. `v0.21.3.2`. |
+| **Telemetry** | Firebase crash reporting in GitHub builds. | Not included. |
+
+Unchanged on purpose: *Resume* still jumps to the next **downloaded** unread chapter, and *Settings → Reader → Skip filtered chapters* works as in Mihon.
+
+### How it stays up to date
+
+1. A daily workflow checks for a new stable Mihon release and merges it into the `tachiyomihon` branch.
+2. A guard script ([`tachiyomihon-guard.sh`](.github/scripts/tachiyomihon-guard.sh)) fails if the merge brings back any of the reverted behaviour, then unit tests and a release build run.
+3. If everything passes, a pull request opens with Mihon's release notes and a list of upstream changes to files this fork customizes. If anything fails, an issue is opened instead.
+4. Merging that pull request builds, signs and publishes a release, and the app offers the update.
+
+### Building locally
+
+```sh
+./gradlew assembleRelease
+```
+
+Requires JDK 21. Add `-Penable-updater` to turn on the in-app updater. To sign with your own key, create a git-ignored `keystore.properties` in the project root with `storeFile`, `storePassword`, `keyAlias` and `keyPassword`.
+
+Issues specific to this fork go [here](https://github.com/MD-1909/TachiyoMihon/issues). Anything that also happens in Mihon belongs [upstream](https://github.com/mihonapp/mihon/issues).
 
 </div>
 
-## Contributing
+---
 
-[Code of conduct](./CODE_OF_CONDUCT.md) · [Contributing guide](./CONTRIBUTING.md)
-
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-Before reporting a new issue, take a look at the [FAQ](https://mihon.app/docs/faq/general), the [changelog](https://mihon.app/changelogs/) and the already opened [issues](https://github.com/mihonapp/mihon/issues); if you got any questions, join our [Discord server](https://discord.gg/mihon).
-
-
-### Repositories
-
-[![mihonapp/website - GitHub](https://github-stats-extended.vercel.app/api/pin/?username=mihonapp&repo=website&bg_color=161B22&text_color=c9d1d9&title_color=0877d2&icon_color=0877d2&border_radius=8&hide_border=true&description_lines_count=2)](https://github.com/mihonapp/website/)
-[![mihonapp/bitmap.kt - GitHub](https://github-stats-extended.vercel.app/api/pin/?username=mihonapp&repo=bitmap.kt&bg_color=161B22&text_color=c9d1d9&title_color=0877d2&icon_color=0877d2&border_radius=8&hide_border=true&description_lines_count=2)](https://github.com/mihonapp/bitmap.kt/)
-
-### Credits
-
-Thank you to all the people who have contributed!
-
-<a href="https://github.com/mihonapp/mihon/graphs/contributors">
-    <img src="https://contrib.rocks/image?repo=mihonapp/mihon" alt="Mihon app contributors" title="Mihon app contributors" width="800"/>
-</a>
-
-### Disclaimer
-
-The developer(s) of this application does not have any affiliation with the content providers available, and this application hosts zero content.
-
-### License
-
-<pre>
-Copyright © 2015 Javier Tomás
-Copyright © 2024 Mihon Open Source Project
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-</pre>
+Based on [Mihon](https://github.com/mihonapp/mihon), all credit for the app goes to its contributors. Licensed under [Apache 2.0](/LICENSE), like Mihon. This app hosts no content and has no affiliation with any content provider.
 
 </div>

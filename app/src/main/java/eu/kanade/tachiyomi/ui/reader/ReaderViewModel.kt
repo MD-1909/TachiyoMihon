@@ -16,7 +16,6 @@ import dev.zacsweers.metro.AssistedInject
 import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metrox.viewmodel.ViewModelAssistedFactory
 import dev.zacsweers.metrox.viewmodel.ViewModelAssistedFactoryKey
-import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.chapter.model.toSChapter
 import eu.kanade.domain.manga.interactor.SetMangaViewerFlags
 import eu.kanade.domain.manga.interactor.UpdateManga
@@ -27,7 +26,6 @@ import eu.kanade.domain.track.interactor.TrackChapter
 import eu.kanade.domain.track.service.TrackPreferences
 import eu.kanade.tachiyomi.data.cache.ChapterCache
 import eu.kanade.tachiyomi.data.cache.CoverCache
-import eu.kanade.tachiyomi.data.download.DownloadCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.download.DownloadProvider
 import eu.kanade.tachiyomi.data.download.model.Download
@@ -48,7 +46,6 @@ import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
 import eu.kanade.tachiyomi.ui.reader.viewer.Viewer
-import eu.kanade.tachiyomi.util.chapter.filterDownloaded
 import eu.kanade.tachiyomi.util.chapter.removeDuplicates
 import eu.kanade.tachiyomi.util.editCover
 import eu.kanade.tachiyomi.util.lang.byteSize
@@ -112,7 +109,6 @@ class ReaderViewModel(
     private val downloadProvider: DownloadProvider,
     private val imageSaver: ImageSaver,
     val readerPreferences: ReaderPreferences,
-    private val basePreferences: BasePreferences,
     private val downloadPreferences: DownloadPreferences,
     private val trackPreferences: TrackPreferences,
     private val trackChapter: TrackChapter,
@@ -128,7 +124,6 @@ class ReaderViewModel(
     private val updateManga: UpdateManga,
     private val coverCache: CoverCache,
     private val chapterCache: ChapterCache,
-    private val downloadCache: DownloadCache,
 ) : ViewModel() {
 
     @AssistedFactory
@@ -282,13 +277,6 @@ class ReaderViewModel(
             .run {
                 if (readerPreferences.skipDupe.get()) {
                     removeDuplicates(selectedChapter)
-                } else {
-                    this
-                }
-            }
-            .run {
-                if (basePreferences.downloadedOnly.get()) {
-                    filterDownloaded(manga, downloadCache)
                 } else {
                     this
                 }

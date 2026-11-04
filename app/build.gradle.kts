@@ -81,6 +81,9 @@ android {
 
             isProfileable = true
 
+            applicationIdSuffix = ".tachiyomihon"
+            resValue("string", "app_name", "TachiyoMihon")
+
             proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
         }
 
@@ -169,6 +172,7 @@ android {
         viewBinding = true
         buildConfig = true
         aidl = true
+        resValues = true
     }
 
     lint {

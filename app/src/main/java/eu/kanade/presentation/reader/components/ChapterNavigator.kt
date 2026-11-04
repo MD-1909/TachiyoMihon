@@ -49,6 +49,8 @@ import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.SkipNext
 import mihon.icons.materialsymbols.rounded.SkipPrevious
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.components.material.LegacySliderThumb
+import tachiyomi.presentation.core.components.material.LegacySliderTrack
 import tachiyomi.presentation.core.i18n.stringResource
 import kotlin.math.roundToInt
 
@@ -217,6 +219,8 @@ fun HorizontalChapterNavigator(
                             onValueChange = { onPageChange(it.roundToInt()) },
                             onValueChangeFinished = onPageChangeFinished,
                             interactionSource = interactionSource,
+                            thumb = { LegacySliderThumb() },
+                            track = { LegacySliderTrack(it, vertical = false) },
                         )
 
                         Text(text = totalPages.toString())
@@ -296,6 +300,8 @@ fun VerticalChapterNavigator(
                     onValueChange = { onPageChange(it.roundToInt()) },
                     onValueChangeFinished = onPageChangeFinished,
                     interactionSource = interactionSource,
+                    thumb = { LegacySliderThumb() },
+                    track = { LegacySliderTrack(it, vertical = true) },
                 )
 
                 Text(text = totalPages.toString())

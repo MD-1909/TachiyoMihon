@@ -22,6 +22,7 @@ import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactoryKey
 import eu.kanade.core.preference.asState
 import eu.kanade.core.util.addOrRemove
 import eu.kanade.core.util.insertSeparators
+import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.chapter.interactor.GetAvailableScanlators
 import eu.kanade.domain.chapter.interactor.SetReadStatus
 import eu.kanade.domain.manga.interactor.GetExcludedScanlators
@@ -114,6 +115,7 @@ class MangaViewModel(
     @AppCoroutineScope private val appScope: CoroutineScope,
     private val context: Context,
     private val libraryPreferences: LibraryPreferences,
+    private val basePreferences: BasePreferences,
     trackPreferences: TrackPreferences,
     readerPreferences: ReaderPreferences,
     private val trackerManager: TrackerManager,
@@ -655,9 +657,16 @@ class MangaViewModel(
         return successState.chapters.getNextUnread(successState.manga)
     }
 
+    // Downloaded-only mode hides exactly the chapters these actions are meant to download
+    private val downloadCandidates: List<ChapterList.Item>
+        get() = if (skipFiltered && !basePreferences.downloadedOnly.get()) {
+            filteredChapters.orEmpty()
+        } else {
+            allChapters.orEmpty()
+        }
+
     private fun getUnreadChapters(): List<Chapter> {
-        val chapterItems = if (skipFiltered) filteredChapters.orEmpty() else allChapters.orEmpty()
-        return chapterItems
+        return downloadCandidates
             .filter { (chapter, dlStatus) -> !chapter.read && dlStatus == Download.State.NOT_DOWNLOADED }
             .map { it.chapter }
     }
@@ -669,8 +678,7 @@ class MangaViewModel(
     }
 
     private fun getBookmarkedChapters(): List<Chapter> {
-        val chapterItems = if (skipFiltered) filteredChapters.orEmpty() else allChapters.orEmpty()
-        return chapterItems
+        return downloadCandidates
             .filter { (chapter, dlStatus) -> chapter.bookmark && dlStatus == Download.State.NOT_DOWNLOADED }
             .map { it.chapter }
     }

@@ -197,7 +197,7 @@ class LibraryPreferences(
 
     val hideMissingChapters: Preference<Boolean> = preferenceStore.getBoolean(
         "pref_hide_missing_chapter_indicators",
-        false,
+        true,
     )
     // endregion
 

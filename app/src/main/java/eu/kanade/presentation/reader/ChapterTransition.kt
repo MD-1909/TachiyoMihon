@@ -35,11 +35,8 @@ import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Info
 import mihon.icons.materialsymbols.roundedfilled.CheckCircle
-import mihon.icons.materialsymbols.roundedfilled.Warning
 import tachiyomi.domain.chapter.model.Chapter
-import tachiyomi.domain.chapter.service.calculateChapterGap
 import tachiyomi.i18n.MR
-import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.secondaryItemAlpha
 
@@ -63,7 +60,6 @@ fun ChapterTransition(
                     bottomChapter = currChapter,
                     bottomChapterDownloaded = currChapterDownloaded,
                     fallbackLabel = stringResource(MR.strings.transition_no_previous),
-                    chapterGap = calculateChapterGap(currChapter, goingToChapter),
                 )
             }
             is ChapterTransition.Next -> {
@@ -75,7 +71,6 @@ fun ChapterTransition(
                     bottomChapter = goingToChapter,
                     bottomChapterDownloaded = goingToChapterDownloaded,
                     fallbackLabel = stringResource(MR.strings.transition_no_next),
-                    chapterGap = calculateChapterGap(goingToChapter, currChapter),
                 )
             }
         }
@@ -91,7 +86,6 @@ private fun TransitionText(
     bottomChapter: Chapter?,
     bottomChapterDownloaded: Boolean,
     fallbackLabel: String,
-    chapterGap: Int,
 ) {
     Column(
         modifier = Modifier
@@ -115,13 +109,6 @@ private fun TransitionText(
         }
 
         if (bottomChapter != null) {
-            if (chapterGap > 0) {
-                ChapterGapWarning(
-                    gapCount = chapterGap,
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                )
-            }
-
             Spacer(Modifier.height(VerticalSpacerSize))
 
             ChapterText(
@@ -162,34 +149,6 @@ private fun NoChapterNotification(
 
             Text(
                 text = text,
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
-    }
-}
-
-@Composable
-private fun ChapterGapWarning(
-    gapCount: Int,
-    modifier: Modifier = Modifier,
-) {
-    OutlinedCard(
-        modifier = modifier,
-        colors = CardColor,
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                imageVector = MaterialSymbols.RoundedFilled.Warning,
-                tint = MaterialTheme.colorScheme.error,
-                contentDescription = null,
-            )
-
-            Text(
-                text = pluralStringResource(MR.plurals.missing_chapters_warning, count = gapCount, gapCount),
                 style = MaterialTheme.typography.bodyMedium,
             )
         }

@@ -96,4 +96,28 @@ class GetApplicationReleaseTest {
 
         result shouldBe GetApplicationRelease.Result.NoNewUpdate
     }
+
+    @Test
+    fun `Compares fork revisions and mismatched lengths numerically`() = runTest {
+        suspend fun isUpdate(latest: String, installed: String): Boolean {
+            coEvery { releaseService.latest(any()) } returns Release(latest, "info", "link", "link.apk")
+            val result = getApplicationRelease.await(
+                GetApplicationRelease.Arguments(
+                    isFoss = false,
+                    isNightly = false,
+                    commitCount = 0,
+                    versionName = installed,
+                    repository = "test",
+                ),
+            )
+            return result is GetApplicationRelease.Result.NewUpdate
+        }
+
+        isUpdate("v0.21.3.2", "0.21.3.1") shouldBe true
+        isUpdate("v0.21.4.1", "0.21.3.7") shouldBe true
+        isUpdate("v0.21.4", "0.21.3.1") shouldBe true
+        isUpdate("v0.21.3.1", "0.21.3.1") shouldBe false
+        isUpdate("v0.21.3.1", "0.21.4.0") shouldBe false
+        isUpdate("v0.21.5", "0.22.0") shouldBe false
+    }
 }

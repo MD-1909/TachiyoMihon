@@ -5,6 +5,10 @@ on:
   pull_request:
     types: [closed]
     branches: [tachiyomihon]
+    paths-ignore:
+      - '**.md'
+      - '.github/assets/**'
+      - 'fastlane/**'
 
 permissions:
   contents: write
@@ -15,8 +19,8 @@ concurrency:
 
 jobs:
   release:
-    # Manual runs, or a merged upstream-sync PR
-    if: github.event_name == 'workflow_dispatch' || (github.event.pull_request.merged && startsWith(github.event.pull_request.head.ref, 'sync/'))
+    # Manual runs, or any merged PR (upstream syncs and feature branches alike)
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged
     runs-on: 'ubuntu-26.04'
 
     steps:

@@ -29,13 +29,13 @@ It installs as a separate app (`app.mihon.tachiyomihon`), so it can live next to
 | **Downloaded only – reader** | The reader only knows about downloaded chapters. Moving past the first/last downloaded chapter shows *"There's no previous chapter"*. | Library and chapter list stay filtered to downloads, but the reader moves into the neighbouring non-downloaded chapter and streams it, like Tachiyomi v14. |
 | **Downloaded only – browsing** | Applies to every manga, so titles you browse that aren't in your library show 0 chapters. | Only narrows manga that are in your library. |
 | **Downloaded only – download menu** | *Next 1/5/10/25 unread*, *Unread* and *Bookmarked* only look at downloaded chapters, so they do nothing. | They pick from the chapters hidden by downloaded-only mode, so you can still queue the next chapters. |
-| **Reading mode & rotation** | Bottom-bar buttons open a sheet with an icon grid and an extra *Apply* button. | A plain list, like Tachiyomi: tap an option and it's applied. |
+| **Reading mode & rotation** | Bottom-bar buttons open a sheet with an icon grid and an extra *Apply* button. | A plain list sitting right above the button, like Tachiyomi: tap an option and it's applied. Bar order is reading mode, crop, rotation, settings. |
 | **Page slider haptics** | Faint "text handle" tick, only while dragging. | Tachiyomi's firmer tick, on drags and taps. |
 | **Unread indicator** | A dot next to every unread chapter (chapter list and Updates). | Removed. Unread chapters are still shown in full brightness, read ones dimmed. |
 | **Missing chapters** | Warning in the chapter header, "missing chapters" rows between chapters, a warning in the reader and a forced transition page at every numbering gap, even when the gap only exists because of a filter. | Reader warning and forced transition pages removed. Header warning and gap rows are hidden by default (toggle in *Settings → Library*). |
 | **Removing from library** | *"Are you sure?"* every time. | Instant from your library, updates and history. Still asks while browsing a source. |
 | **Library selection bar** | *Migrate* takes a slot, pushing *Delete* into the overflow menu. | *Migrate* removed, *Delete* is a visible icon again (still asks whether to delete downloads). |
-| **Source filters** | Oversized boxes with small text inside. | Compact fields, label and text the same size. |
+| **Source filters** | Oversized outlined boxes with small text inside. | Tachiyomi-style rows: *Status: All ▾* dropdowns and underlined text fields, no boxes. |
 | **Sliders** | Material 3 Expressive: tall track, bar-shaped thumb, track split around the thumb. | The older look everywhere (reader page slider and settings): thin track with dot ticks and a round thumb. |
 | **Icon** | Mihon's blue ring. | Tachiyomi's blue and red with Mihon's kanji. |
 | **Updates** | From `mihonapp/mihon`. | From this repo's releases (the About screen's GitHub link points here too). Versions are `<Mihon version>.<revision>`, e.g. `v0.21.3.2`. |

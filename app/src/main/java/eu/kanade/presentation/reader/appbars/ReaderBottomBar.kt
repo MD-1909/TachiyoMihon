@@ -2,11 +2,16 @@ package eu.kanade.presentation.reader.appbars
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.material3.DropdownMenu
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -18,6 +23,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupPositionProvider
+import androidx.compose.ui.window.PopupProperties
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
@@ -56,6 +69,13 @@ fun ReaderBottomBar(
             onSelect = onSelectReadingMode,
         )
 
+        IconButton(onClick = onClickCropBorder) {
+            Icon(
+                imageVector = if (cropEnabled) MaterialSymbols.Rounded.Crop else CustomMaterialSymbols.Rounded.CropOff,
+                contentDescription = stringResource(MR.strings.pref_crop_borders),
+            )
+        }
+
         SelectMenuButton(
             icon = orientation.icon,
             contentDescription = stringResource(MR.strings.rotation_type),
@@ -64,13 +84,6 @@ fun ReaderBottomBar(
             label = { it.stringRes },
             onSelect = onSelectOrientation,
         )
-
-        IconButton(onClick = onClickCropBorder) {
-            Icon(
-                imageVector = if (cropEnabled) MaterialSymbols.Rounded.Crop else CustomMaterialSymbols.Rounded.CropOff,
-                contentDescription = stringResource(MR.strings.pref_crop_borders),
-            )
-        }
 
         IconButton(onClick = onClickSettings) {
             Icon(
@@ -96,23 +109,58 @@ private fun <T> SelectMenuButton(
         IconButton(onClick = { expanded = true }) {
             Icon(imageVector = icon, contentDescription = contentDescription)
         }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            options.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(stringResource(label(option))) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = MaterialSymbols.Rounded.Check,
-                            contentDescription = null,
-                            modifier = Modifier.alpha(if (option == selected) 1f else 0f),
-                        )
-                    },
-                    onClick = {
-                        expanded = false
-                        onSelect(option)
-                    },
-                )
+        if (expanded) {
+            Popup(
+                popupPositionProvider = AboveAnchorPositionProvider,
+                onDismissRequest = { expanded = false },
+                properties = PopupProperties(focusable = true),
+            ) {
+                Surface(
+                    shape = MaterialTheme.shapes.extraSmall,
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    tonalElevation = 3.dp,
+                    shadowElevation = 3.dp,
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .width(IntrinsicSize.Max)
+                            .padding(vertical = 8.dp),
+                    ) {
+                        options.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(stringResource(label(option))) },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = MaterialSymbols.Rounded.Check,
+                                        contentDescription = null,
+                                        modifier = Modifier.alpha(if (option == selected) 1f else 0f),
+                                    )
+                                },
+                                onClick = {
+                                    expanded = false
+                                    onSelect(option)
+                                },
+                            )
+                        }
+                    }
+                }
             }
         }
+    }
+}
+
+// Material's DropdownMenu re-centres tall menus; Tachiyomi always sat the menu on top of the toolbar
+private object AboveAnchorPositionProvider : PopupPositionProvider {
+    override fun calculatePosition(
+        anchorBounds: IntRect,
+        windowSize: IntSize,
+        layoutDirection: LayoutDirection,
+        popupContentSize: IntSize,
+    ): IntOffset {
+        val x = anchorBounds.left
+            .coerceAtMost(windowSize.width - popupContentSize.width)
+            .coerceAtLeast(0)
+        val y = (anchorBounds.top - popupContentSize.height).coerceAtLeast(0)
+        return IntOffset(x, y)
     }
 }

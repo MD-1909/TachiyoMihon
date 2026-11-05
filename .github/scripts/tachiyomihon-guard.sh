@@ -54,6 +54,8 @@ present 'SelectMenuButton' "Reader reading mode/rotation no longer use dropdown 
   "$APP/eu/kanade/presentation/reader/appbars/ReaderBottomBar.kt"
 present 'HapticFeedbackConstants\.VIRTUAL_KEY' "Page slider no longer uses Tachiyomi's haptic" \
   "$APP/eu/kanade/presentation/reader/components/ChapterNavigator.kt"
+present 'globalSearchSources' "Global search no longer follows the sources setting" \
+  "$APP/eu/kanade/tachiyomi/ui/browse/source/globalsearch/GlobalSearchViewModel.kt"
 present 'UnderlinedTextField' "Source filter text fields are boxed again" \
   presentation-core/src/main/java/tachiyomi/presentation/core/components/SettingsItems.kt
 present 'AboveAnchorPositionProvider' "Reader menus no longer sit on top of the toolbar" \

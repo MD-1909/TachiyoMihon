@@ -79,6 +79,13 @@ class SourcePreferences(
         false,
     )
 
+    val globalSearchSources: Preference<GlobalSearchSources> = preferenceStore.getEnum(
+        "tachiyomihon_global_search_sources",
+        GlobalSearchSources.ALL,
+    )
+
+    enum class GlobalSearchSources { ALL, PINNED, CHOOSE }
+
     val migrationSources: Preference<List<Long>> = preferenceStore.getLongArray("migration_sources", emptyList())
 
     val migrationFlags: Preference<Set<MigrationFlag>> = preferenceStore.getObjectFromInt(

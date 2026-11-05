@@ -9,6 +9,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.fragment.app.FragmentActivity
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.more.settings.screen.browse.ExtensionStoresScreen
 import eu.kanade.tachiyomi.util.system.AuthenticatorUtil.authenticate
@@ -42,6 +43,16 @@ object SettingsBrowseScreen : SearchableSettings {
                     Preference.PreferenceItem.SwitchPreference(
                         preference = sourcePreferences.hideInLibraryItems,
                         title = stringResource(MR.strings.pref_hide_in_library_items),
+                    ),
+                    // Fork-only setting; English text keeps upstream's strings.xml untouched
+                    Preference.PreferenceItem.ListPreference(
+                        preference = sourcePreferences.globalSearchSources,
+                        entries = mapOf(
+                            SourcePreferences.GlobalSearchSources.ALL to "All sources",
+                            SourcePreferences.GlobalSearchSources.PINNED to "Pinned sources only",
+                            SourcePreferences.GlobalSearchSources.CHOOSE to "Choose with Pinned/All buttons",
+                        ),
+                        title = "Global search sources",
                     ),
                     Preference.PreferenceItem.TextPreference(
                         title = stringResource(MR.strings.extensionStores),

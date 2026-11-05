@@ -25,7 +25,14 @@ class GlobalSearchViewModel(
     getManga: GetManga,
     preferences: SourcePreferences,
 ) : SearchViewModel(
-    initialState = State(searchQuery = initialQuery),
+    initialState = State(
+        searchQuery = initialQuery,
+        sourceFilter = if (preferences.globalSearchSources.get() == SourcePreferences.GlobalSearchSources.ALL) {
+            SourceFilter.All
+        } else {
+            SourceFilter.PinnedOnly
+        },
+    ),
     sourcePreferences = sourcePreferences,
     sourceManager = sourceManager,
     extensionManager = extensionManager,
@@ -33,6 +40,8 @@ class GlobalSearchViewModel(
     getManga = getManga,
     preferences = preferences,
 ) {
+
+    val showSourceFilter = preferences.globalSearchSources.get() == SourcePreferences.GlobalSearchSources.CHOOSE
 
     @AssistedFactory
     @ManualViewModelAssistedFactoryKey

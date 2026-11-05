@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.FlowRowScope
@@ -18,18 +19,15 @@ import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExposedDropdownMenu
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -283,6 +281,7 @@ fun SliderItemPreview() {
     }
 }
 
+// Tachiyomi-style select: "Label:  value ▾" without an outlined box
 @Composable
 fun SelectItem(
     label: String,
@@ -292,41 +291,40 @@ fun SelectItem(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded },
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { expanded = true }
+            .padding(horizontal = SettingsItemsPaddings.Horizontal, vertical = SettingsItemsPaddings.Vertical),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        CompactOutlinedTextField(
-            modifier = Modifier
-                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                .fillMaxWidth()
-                .padding(horizontal = SettingsItemsPaddings.Horizontal, vertical = 4.dp),
-            label = label,
-            value = options.getOrNull(selectedIndex)?.toString().orEmpty(),
-            onValueChange = {},
-            readOnly = true,
-            trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(
-                    expanded = expanded,
-                )
-            },
-            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+        Text(
+            text = "$label:",
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyMedium,
         )
-
-        ExposedDropdownMenu(
-            modifier = Modifier.exposedDropdownSize(),
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-        ) {
-            options.forEachIndexed { index, text ->
-                DropdownMenuItem(
-                    text = { Text(text.toString()) },
-                    onClick = {
-                        onSelect(index)
-                        expanded = false
-                    },
-                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+        Box(modifier = Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = options.getOrNull(selectedIndex)?.toString().orEmpty(),
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.bodyMedium,
                 )
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+            ) {
+                options.forEachIndexed { index, text ->
+                    DropdownMenuItem(
+                        text = { Text(text.toString()) },
+                        onClick = {
+                            onSelect(index)
+                            expanded = false
+                        },
+                    )
+                }
             }
         }
     }
@@ -387,7 +385,7 @@ fun TriStateItem(
 
 @Composable
 fun TextItem(label: String, value: String, onChange: (String) -> Unit) {
-    CompactOutlinedTextField(
+    UnderlinedTextField(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = SettingsItemsPaddings.Horizontal, vertical = 4.dp),
@@ -397,29 +395,25 @@ fun TextItem(label: String, value: String, onChange: (String) -> Unit) {
     )
 }
 
-// OutlinedTextField forces a 56dp minimum and inherits the surrounding (small) text style
+// Tachiyomi-style text input: floating label over a single underline, no box
 @Composable
-private fun CompactOutlinedTextField(
+private fun UnderlinedTextField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
     modifier: Modifier = Modifier,
-    readOnly: Boolean = false,
-    trailingIcon: @Composable (() -> Unit)? = null,
-    colors: TextFieldColors = OutlinedTextFieldDefaults.colors(),
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     BasicTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier,
-        readOnly = readOnly,
         singleLine = true,
-        textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+        textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
         interactionSource = interactionSource,
         decorationBox = { innerTextField ->
-            OutlinedTextFieldDefaults.DecorationBox(
+            TextFieldDefaults.DecorationBox(
                 value = value,
                 innerTextField = innerTextField,
                 enabled = true,
@@ -427,9 +421,16 @@ private fun CompactOutlinedTextField(
                 visualTransformation = VisualTransformation.None,
                 interactionSource = interactionSource,
                 label = { Text(text = label) },
-                trailingIcon = trailingIcon,
-                colors = colors,
-                contentPadding = OutlinedTextFieldDefaults.contentPadding(top = 12.dp, bottom = 12.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                ),
+                contentPadding = TextFieldDefaults.contentPaddingWithLabel(
+                    start = 0.dp,
+                    end = 0.dp,
+                    top = 6.dp,
+                    bottom = 6.dp,
+                ),
             )
         },
     )

@@ -85,6 +85,11 @@ android {
             // Fork revision on top of the upstream version, e.g. 0.21.3 -> 0.21.3.2
             versionNameSuffix = "." + providers.gradleProperty("tachiyomihonRevision").getOrElse("0")
             resValue("string", "app_name", "TachiyoMihon")
+            // -PtachiyomihonPreview: locally signed build that installs next to the released app
+            if (providers.gradleProperty("tachiyomihonPreview").isPresent) {
+                applicationIdSuffix = ".tachiyomihon.preview"
+                resValue("string", "app_name", "TachiyoMihon Preview")
+            }
 
             proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
         }

@@ -41,7 +41,8 @@ fun SourceFilterDialog(
     val updateFilters = { onUpdate(filters) }
 
     AdaptiveSheet(onDismissRequest = onDismissRequest) {
-        LazyColumn {
+        // Match the sticky header so pure black themes stay black instead of the sheet's grey
+        LazyColumn(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
             stickyHeader {
                 Row(
                     modifier = Modifier

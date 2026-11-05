@@ -117,7 +117,8 @@ class MangaScreen(
             onDownloadChapter = viewModel::runChapterDownloadActions.takeIf { !successState.source.isLocalOrStub() },
             downloadProgressProvider = viewModel::getDownloadProgress,
             onAddToLibraryClicked = {
-                if (successState.manga.favorite) {
+                // Only confirm removal while browsing a source; from the library it's a deliberate action
+                if (successState.manga.favorite && fromSource) {
                     viewModel.showRemoveFromLibraryDialog()
                 } else {
                     viewModel.toggleFavorite()

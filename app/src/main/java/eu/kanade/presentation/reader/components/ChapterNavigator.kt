@@ -1,8 +1,8 @@
 package eu.kanade.presentation.reader.components
 
+import android.view.HapticFeedbackConstants
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,7 +25,6 @@ import androidx.compose.material3.rememberSliderState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
@@ -36,9 +35,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
@@ -77,7 +75,7 @@ fun ChapterNavigator(
     onPageIndexChangeFinished: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val haptic = LocalHapticFeedback.current
+    val view = LocalView.current
 
     val state = if (totalPages > 1) {
         key(totalPages) {
@@ -95,12 +93,6 @@ fun ChapterNavigator(
     }
 
     val interactionSource = remember { MutableInteractionSource() }
-    val sliderDragged by interactionSource.collectIsDraggedAsState()
-    LaunchedEffect(currentPage) {
-        if (sliderDragged) {
-            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-        }
-    }
 
     val isTabletUi = isTabletUi()
     val mainAxisPadding = if (isTabletUi) 24.dp else 8.dp
@@ -114,7 +106,11 @@ fun ChapterNavigator(
         disabledContainerColor = backgroundColor,
     )
 
-    val onPageChange: (Int) -> Unit = { onPageIndexChange(it - 1) }
+    // Slider only reports user changes, so this ticks on drags and taps like Tachiyomi's
+    val onPageChange: (Int) -> Unit = {
+        view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+        onPageIndexChange(it - 1)
+    }
 
     if (type.isHorizontal()) {
         HorizontalChapterNavigator(

@@ -38,8 +38,26 @@ for f in $(grep -rlE --include='*.kt' 'import androidx\.compose\.material3\.(Sli
 done
 
 present 'MD-1909/TachiyoMihon' "Updater no longer points at the fork" "$APP/eu/kanade/tachiyomi/data/updater/AppUpdateChecker.kt"
+present 'github.com/\$GITHUB_REPO' "About screen GitHub link no longer points at the fork" \
+  "$APP/eu/kanade/presentation/more/settings/screen/about/AboutScreen.kt"
 present 'applicationIdSuffix = "\.tachiyomihon"' "Release package id changed" app/build.gradle.kts
 present 'tachiyomihonRevision' "Fork revision suffix removed from versionName" app/build.gradle.kts
+present '#2E84BF' "Launcher icon background is no longer Tachiyomi blue" app/src/main/res/drawable/ic_launcher_background.xml
+
+present 'favorite && .*downloadedOnly' "Downloaded-only filter applies to manga outside the library again" \
+  "$APP/eu/kanade/domain/manga/model/Manga.kt"
+present 'favorite && fromSource' "Removing from library asks for confirmation outside source browsing again" \
+  "$APP/eu/kanade/tachiyomi/ui/manga/MangaScreen.kt"
+absent 'MR\.strings\.migrate' "Migrate is back in the library selection bar" \
+  "$APP/eu/kanade/presentation/manga/components/MangaBottomActionMenu.kt"
+present 'SelectMenuButton' "Reader reading mode/rotation no longer use dropdown lists" \
+  "$APP/eu/kanade/presentation/reader/appbars/ReaderBottomBar.kt"
+present 'HapticFeedbackConstants\.VIRTUAL_KEY' "Page slider no longer uses Tachiyomi's haptic" \
+  "$APP/eu/kanade/presentation/reader/components/ChapterNavigator.kt"
+present 'UnderlinedTextField' "Source filter text fields are boxed again" \
+  presentation-core/src/main/java/tachiyomi/presentation/core/components/SettingsItems.kt
+present 'AboveAnchorPositionProvider' "Reader menus no longer sit on top of the toolbar" \
+  "$APP/eu/kanade/presentation/reader/appbars/ReaderBottomBar.kt"
 
 if [ "$failed" -ne 0 ]; then exit 1; fi
 echo "All TachiyoMihon guards passed"

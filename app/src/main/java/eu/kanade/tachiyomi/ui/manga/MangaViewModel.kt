@@ -659,7 +659,7 @@ class MangaViewModel(
 
     // Downloaded-only mode hides exactly the chapters these actions are meant to download
     private val downloadCandidates: List<ChapterList.Item>
-        get() = if (skipFiltered && !basePreferences.downloadedOnly.get()) {
+        get() = if (skipFiltered && !(basePreferences.downloadedOnly.get() && manga?.favorite == true)) {
             filteredChapters.orEmpty()
         } else {
             allChapters.orEmpty()

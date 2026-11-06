@@ -40,7 +40,6 @@ import eu.kanade.presentation.manga.DuplicateMangaDialog
 import eu.kanade.presentation.util.AssistContentScreen
 import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.source.online.HttpSource
-import eu.kanade.tachiyomi.ui.browse.extension.details.SourcePreferencesScreen
 import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceViewModel.Listing
 import eu.kanade.tachiyomi.ui.category.CategoryScreen
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
@@ -141,7 +140,6 @@ data class BrowseSourceScreen(
                         navigateUp = navigateUp,
                         onWebViewClick = onWebViewClick,
                         onHelpClick = onHelpClick,
-                        onSettingsClick = { navigator.push(SourcePreferencesScreen(sourceId)) },
                         onSearch = viewModel::search,
                     )
 

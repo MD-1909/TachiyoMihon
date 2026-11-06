@@ -13,10 +13,10 @@ import eu.kanade.presentation.components.AppBarTitle
 import eu.kanade.presentation.components.DropdownMenu
 import eu.kanade.presentation.components.RadioMenuItem
 import eu.kanade.presentation.components.SearchToolbar
-import eu.kanade.tachiyomi.source.ConfigurableSource
 import eu.kanade.tachiyomi.source.Source
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.automirroredroundedfilled.ViewList
+import mihon.icons.materialsymbols.rounded.Public
 import mihon.icons.materialsymbols.roundedfilled.ViewCompact
 import mihon.icons.materialsymbols.roundedfilled.ViewModule
 import tachiyomi.domain.library.model.LibraryDisplayMode
@@ -34,14 +34,12 @@ fun BrowseSourceToolbar(
     navigateUp: () -> Unit,
     onWebViewClick: () -> Unit,
     onHelpClick: () -> Unit,
-    onSettingsClick: () -> Unit,
     onSearch: (String) -> Unit,
     scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
     // Avoid capturing unstable source in actions lambda
     val title = source?.name
     val isLocalSource = source is LocalSource
-    val isConfigurableSource = source is ConfigurableSource
 
     var selectingDisplayMode by remember { mutableStateOf(false) }
 
@@ -76,18 +74,12 @@ fun BrowseSourceToolbar(
                             ),
                         )
                     } else {
+                        // Tachiyomi-style: always-visible globe; source settings live in Extensions
                         add(
-                            AppBar.OverflowAction(
+                            AppBar.Action(
                                 title = stringResource(MR.strings.action_open_in_web_view),
+                                icon = MaterialSymbols.Rounded.Public,
                                 onClick = onWebViewClick,
-                            ),
-                        )
-                    }
-                    if (isConfigurableSource) {
-                        add(
-                            AppBar.OverflowAction(
-                                title = stringResource(MR.strings.action_settings),
-                                onClick = onSettingsClick,
                             ),
                         )
                     }

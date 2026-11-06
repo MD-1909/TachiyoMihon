@@ -36,6 +36,7 @@ It installs as a separate app (`app.mihon.tachiyomihon`), so it can live next to
 | **Removing from library** | *"Are you sure?"* every time. | Instant from your library, updates and history. Still asks while browsing a source. |
 | **Library selection bar** | *Migrate* takes a slot, pushing *Delete* into the overflow menu. | *Migrate* removed, *Delete* is a visible icon again (still asks whether to delete downloads). |
 | **Global search** | Starts with pinned sources only, with *Pinned* / *All* buttons to switch. | Setting in *Settings → Browse*: always all sources (default), always pinned only, or keep the buttons. *Has results* is unchanged. |
+| **Source toolbar** | *Open in WebView* and extension *Settings* hidden behind a ⋮ menu. | Always-visible globe icon for WebView, like Tachiyomi. Extension settings stay in *Browse → Extensions*. |
 | **Source filters** | Oversized outlined boxes with small text inside. | Tachiyomi-style rows: *Status: All ▾* dropdowns and underlined text fields, no boxes. |
 | **Sliders** | Material 3 Expressive: tall track, bar-shaped thumb, track split around the thumb. | The older look everywhere (reader page slider and settings): thin track with dot ticks and a round thumb. |
 | **Icon** | Mihon's blue ring. | Tachiyomi's blue and red with Mihon's kanji. |

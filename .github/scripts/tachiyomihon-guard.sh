@@ -46,8 +46,14 @@ present '#2E84BF' "Launcher icon background is no longer Tachiyomi blue" app/src
 
 present 'favorite && .*downloadedOnly' "Downloaded-only filter applies to manga outside the library again" \
   "$APP/eu/kanade/domain/manga/model/Manga.kt"
-present 'favorite && fromSource' "Removing from library asks for confirmation outside source browsing again" \
+absent 'showRemoveFromLibraryDialog' "Manga page asks for confirmation before removing from library again" \
   "$APP/eu/kanade/tachiyomi/ui/manga/MangaScreen.kt"
+present 'RemoveMangaDialog' "Long-press removal while browsing a source no longer asks for confirmation" \
+  "$APP/eu/kanade/tachiyomi/ui/browse/source/browse/BrowseSourceScreen.kt"
+present 'setNextScheduleTimeOverride' "Automatic updates no longer follow the user's chosen start time" \
+  "$APP/eu/kanade/tachiyomi/data/library/LibraryUpdateWorker.kt"
+present 'AutoUpdateIntervalDialog' "Automatic update interval is no longer a wheel picker" \
+  "$APP/eu/kanade/presentation/more/settings/screen/SettingsLibraryScreen.kt"
 absent 'MR\.strings\.migrate' "Migrate is back in the library selection bar" \
   "$APP/eu/kanade/presentation/manga/components/MangaBottomActionMenu.kt"
 present 'SelectMenuButton' "Reader reading mode/rotation no longer use dropdown lists" \

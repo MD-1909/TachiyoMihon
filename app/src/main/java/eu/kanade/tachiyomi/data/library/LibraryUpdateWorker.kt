@@ -126,6 +126,8 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
         setForegroundSafely()
 
         libraryPreferences.lastUpdatedTimestamp.set(Clock.System.now().toEpochMilliseconds())
+        // Pin the next automatic run to the user's schedule so it doesn't drift by each run's duration
+        if (tags.contains(WORK_NAME_AUTO)) setupTask(context)
 
         val categoryId = inputData.getLong(KEY_CATEGORY, -1L)
         addMangaToQueue(categoryId)
@@ -439,10 +441,16 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
         fun setupTask(
             context: Context,
             prefInterval: Int? = null,
+            resetSchedule: Boolean = false,
         ) {
             val preferences = context.appGraph.libraryPreferences
             val interval = prefInterval ?: preferences.autoUpdateInterval.get()
             if (interval > 0) {
+                val now = System.currentTimeMillis()
+                val anchor = preferences.autoUpdateAnchor.get().takeIf { !resetSchedule && it in 1..now }
+                    ?: now.also { preferences.autoUpdateAnchor.set(it) }
+                val nextRun = nextAutoUpdateAt(anchor, preferences.lastUpdatedTimestamp.get(), interval)
+
                 val restrictions = preferences.autoUpdateDeviceRestrictions.get()
                 val networkType = if (DEVICE_NETWORK_NOT_METERED in restrictions) {
                     NetworkType.UNMETERED
@@ -466,16 +474,12 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
                     .setRequiresBatteryNotLow(true)
                     .build()
 
-                val request = PeriodicWorkRequestBuilder<LibraryUpdateWorker>(
-                    interval.toLong(),
-                    TimeUnit.HOURS,
-                    10,
-                    TimeUnit.MINUTES,
-                )
+                val request = PeriodicWorkRequestBuilder<LibraryUpdateWorker>(interval.toLong(), TimeUnit.HOURS)
                     .addTag(TAG)
                     .addTag(WORK_NAME_AUTO)
                     .setConstraints(constraints)
                     .setBackoffCriteria(BackoffPolicy.LINEAR, 10, TimeUnit.MINUTES)
+                    .setNextScheduleTimeOverride(nextRun)
                     .build()
 
                 context.workManager.enqueueUniquePeriodicWork(
@@ -486,6 +490,13 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
             } else {
                 context.workManager.cancelUniqueWork(WORK_NAME_AUTO)
             }
+        }
+
+        /** First slot (anchor + n * interval) after the last update; in the past if a run is overdue. */
+        fun nextAutoUpdateAt(anchor: Long, lastUpdate: Long, intervalHours: Int): Long {
+            val period = TimeUnit.HOURS.toMillis(intervalHours.toLong())
+            val elapsed = (lastUpdate - anchor).coerceAtLeast(0)
+            return anchor + (elapsed / period + 1) * period
         }
 
         suspend fun startNow(

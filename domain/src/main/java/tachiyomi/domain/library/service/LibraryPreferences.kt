@@ -43,6 +43,12 @@ class LibraryPreferences(
     )
     val autoUpdateInterval: Preference<Int> = preferenceStore.getInt("pref_library_update_interval_key", 0)
 
+    // When the user last picked an interval; automatic updates run every interval from here
+    val autoUpdateAnchor: Preference<Long> = preferenceStore.getLong(
+        Preference.appStateKey("library_update_anchor"),
+        0L,
+    )
+
     val autoUpdateDeviceRestrictions: Preference<Set<String>> = preferenceStore.getStringSet(
         "library_update_restriction",
         setOf(

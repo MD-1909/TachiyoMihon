@@ -117,12 +117,8 @@ class MangaScreen(
             onDownloadChapter = viewModel::runChapterDownloadActions.takeIf { !successState.source.isLocalOrStub() },
             downloadProgressProvider = viewModel::getDownloadProgress,
             onAddToLibraryClicked = {
-                // Only confirm removal while browsing a source; from the library it's a deliberate action
-                if (successState.manga.favorite && fromSource) {
-                    viewModel.showRemoveFromLibraryDialog()
-                } else {
-                    viewModel.toggleFavorite()
-                }
+                // Removal is never confirmed here; only a long-press in a source's listing asks
+                viewModel.toggleFavorite()
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             },
             onWebViewClicked = {

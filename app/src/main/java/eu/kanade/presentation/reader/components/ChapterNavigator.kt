@@ -106,10 +106,20 @@ fun ChapterNavigator(
         disabledContainerColor = backgroundColor,
     )
 
-    // Slider only reports user changes, so this ticks on drags and taps like Tachiyomi's
+    // Slider only reports user changes, so this ticks on drags and taps like Tachiyomi's.
+    // The reader can settle on a different page (e.g. double pages), so only react to new targets
+    // or a resting finger keeps re-requesting the same page and buzzing.
+    var lastRequestedPage by remember { mutableIntStateOf(0) }
     val onPageChange: (Int) -> Unit = {
-        view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-        onPageIndexChange(it - 1)
+        if (it != lastRequestedPage) {
+            lastRequestedPage = it
+            view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            onPageIndexChange(it - 1)
+        }
+    }
+    val onPageChangeFinished = {
+        lastRequestedPage = 0
+        onPageIndexChangeFinished()
     }
 
     if (type.isHorizontal()) {
@@ -123,7 +133,7 @@ fun ChapterNavigator(
             currentPage = currentPage,
             totalPages = totalPages,
             onPageChange = onPageChange,
-            onPageChangeFinished = onPageIndexChangeFinished,
+            onPageChangeFinished = onPageChangeFinished,
             interactionSource = interactionSource,
             mainAxisPadding = mainAxisPadding,
             backgroundColor = backgroundColor,
@@ -140,7 +150,7 @@ fun ChapterNavigator(
             currentPage = currentPage,
             totalPages = totalPages,
             onPageChange = onPageChange,
-            onPageChangeFinished = onPageIndexChangeFinished,
+            onPageChangeFinished = onPageChangeFinished,
             interactionSource = interactionSource,
             mainAxisPadding = mainAxisPadding,
             backgroundColor = backgroundColor,
